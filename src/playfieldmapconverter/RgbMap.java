@@ -21,25 +21,55 @@ class RgbMap extends HashMap<Rgb, Character> {
     private final int[] pixel = new int[3];
 
     public RgbMap() {
-        put(new Rgb(0x7F, 0x7F, 0x7F), '#');
-        put(new Rgb(0x00, 0xFF, 0x00), ',');
-        put(new Rgb(0xFF, 0xFF, 0x00), '.');
-        put(new Rgb(0x00, 0x7F, 0x00), '&');
-        put(new Rgb(0x7F, 0x00, 0x00), '+');
-        put(new Rgb(0x00, 0x00, 0xFF), '/');
+        putRgb(0x7F, 0x7F, 0x7F, '#');
+        putRgb(0x00, 0xFF, 0x00, ',');
+        putRgb(0xFF, 0xFF, 0x00, '.');
+        putRgb(0x00, 0x7F, 0x00, '&');
+        putRgb(0x7F, 0x00, 0x00, '+');
+        putRgb(0x00, 0x00, 0xFF, '/');
     }
 
+    /**
+     * This method adds a color and letter to the map.
+     *
+     * @param r The red channel, 0-255.
+     * @param g The blue channel, 0-255.
+     * @param b The green channel, 0-255.
+     * @param letter A letter to represent the color.
+     */
+    public void putRgb(int r, int g, int b, char letter) {
+        put(Rgb.fromRgb(r, g, b), letter);
+    }
+
+    /**
+     * This method selects a character to represent a specific color.
+     *
+     * @param rgb The color to represent.
+     * @return The character to use for this color.
+     */
     public char getCharForRgb(Rgb rgb) {
         Character found = get(rgb);
         if (found == null) {
-            found = nextChar;
-            ++nextChar;
+            do {
+                found = nextChar;
+                ++nextChar;
+            } while (containsKey(nextChar));
+
             put(rgb, found);
 //            System.out.println(String.format("Found %s -> %s", rgb, found));
         }
+
         return found;
     }
 
+    /**
+     * Returns the Rgb for the color at a specific pixel in a raster.
+     *
+     * @param raster The image to read from.
+     * @param x The x co-ordinate to read.
+     * @param y The y co-ordinate to read.
+     * @return An Rgb containing the color at this pixel.
+     */
     public Rgb getRgb(Raster raster, int x, int y) {
         raster.getPixel(x, y, pixel);
         return Rgb.fromBuffer(pixel);

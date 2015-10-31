@@ -6,24 +6,78 @@
 package playfieldmapconverter;
 
 /**
- * Rgb represents a color, and stores it as a 32 bit integer;
- * we use this as a key in the RgpMap class.
+ * Rgb represents a color, and stores it as a 32 bit integer; we use this as a
+ * key in the RgpMap class.
+ *
  * @author danj
  */
 final class Rgb {
-    private int rgb;
 
-    public Rgb(int r, int g, int b) {
-        rgb = r << 16 | g << 8 | b;
+    private final int rgb;
+
+    private Rgb(int r, int g, int b) {
+        this.rgb = r << 16 | g << 8 | b;
     }
 
     /**
-     * This method generates an Rgb instance from a buffer
-     * that is used with a Raster instance; the pixels are
-     * actually 16-bits wide here. They are all ints because
-     * they are postivie numbers, and a 'short' won't hold
-     * the maximum value 0xFFFF.
-     * 
+     * This method returns the red channel of this Rgb.
+     *
+     * @return The red channel, 0-255.
+     */
+    public int getRed() {
+        return rgb >> 16;
+    }
+
+    /**
+     * This method returns the green channel of this Rgb.
+     *
+     * @return The green channel, 0-255.
+     */
+    public int getGreen() {
+        return (rgb >> 8) & 0xFF;
+    }
+
+    /**
+     * This method returns the blue channel of this Rgb.
+     *
+     * @return The blue channel, 0-255.
+     */
+    public int getBlue() {
+        return rgb & 0xFF;
+    }
+
+    /**
+     * This method generates an Rgb, but it interns the most common colors to
+     * avoid too many allocations.
+     *
+     * @param r The red channel, 0-255.
+     * @param g The green channel, 0-255.
+     * @param b The blue channel, 0-255.
+     * @return An RGB containing these values.
+     */
+    public static Rgb fromRgb(int r, int g, int b) {
+        int index = getInternIndex(r, g, b);
+
+        if (index < 0) {
+            return new Rgb(r, g, b);
+        }
+
+        Rgb found = internedRgbs[index];
+
+        if (found == null) {
+            found = new Rgb(r, g, b);
+            internedRgbs[index] = found;
+        }
+
+        return found;
+    }
+
+    /**
+     * This method generates an Rgb instance from a buffer that is used with a
+     * Raster instance; the pixels are actually 16-bits wide here. They are all
+     * ints because they are postivie numbers, and a 'short' won't hold the
+     * maximum value 0xFFFF.
+     *
      * @param buffer The buffer to read pixel data from.
      * @return An Rgb instance holding the buffer data.
      */
@@ -31,7 +85,60 @@ final class Rgb {
         int r = buffer[0] >>> 8;
         int g = buffer[1] >>> 8;
         int b = buffer[2] >>> 8;
-        return new Rgb(r, g, b);
+        return fromRgb(r, g, b);
+    }
+
+    private static Rgb[] internedRgbs = new Rgb[27];
+
+    /**
+     * This method figures out what index in 'intenedRgbs' a color shoudl be
+     * interned at; it returns -1 for non-interned colors.
+     *
+     * @param r The red channel, 0-255.
+     * @param g The green channel, 0-255.
+     * @param b The blue channel, 0-255.
+     * @return The index to intern at, or -1 to not do so.
+     */
+    private static int getInternIndex(int r, int g, int b) {
+        int bi = getChannelInternIndex(b);
+
+        if (bi < 0) {
+            return -1;
+        }
+
+        int gi = getChannelInternIndex(g);
+
+        if (gi < 0) {
+            return -1;
+        }
+
+        int ri = getChannelInternIndex(g);
+
+        if (ri < 0) {
+            return -1;
+        }
+
+        return bi + gi * 3 + ri * 9;
+    }
+
+    /**
+     * Works out an index to use to work out interning for a single channel; for
+     * the most common values this returns a small index, and for all others -1.
+     *
+     * @param channel The color channel value, 0-255.
+     * @return An index, 0-2 or -1 to not intern the color.
+     */
+    private static int getChannelInternIndex(int channel) {
+        switch (channel) {
+            case 0x00:
+                return 0;
+            case 0x7F:
+                return 1;
+            case 0xFF:
+                return 2;
+            default:
+                return -1;
+        }
     }
 
     @Override
@@ -59,5 +166,5 @@ final class Rgb {
             return false;
         }
         return true;
-    }    
+    }
 }
