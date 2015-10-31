@@ -21,22 +21,16 @@ public class PlayfieldMapConverter {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        BufferedImage img = ImageIO.read(new File("/home/danj/Venice.png"));
-        Raster raster = img.getRaster();
+        File inputFile;
 
-        int width = raster.getWidth();
-        int height = raster.getHeight();
-
-        RgbMap rgbMap = new RgbMap();
-
-        int[] pixel = new int[3];
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                Rgb rgb = rgbMap.getRgb(raster, x, y);
-                System.out.print(rgbMap.getCharForRgb(rgb));
-            }
-
-            System.out.println();
+        if (args.length > 0) {
+            inputFile = new File(args[0]);
+        } else {
+            throw new IllegalArgumentException("Filename is required.");
         }
+
+        BufferedImage img = ImageIO.read(inputFile);
+        RgbMap rgbMap = new RgbMap();
+        rgbMap.translateTo(img.getRaster(), System.out);
     }
 }

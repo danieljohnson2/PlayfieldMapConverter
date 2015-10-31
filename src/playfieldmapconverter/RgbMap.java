@@ -6,6 +6,7 @@
 package playfieldmapconverter;
 
 import java.awt.image.Raster;
+import java.io.PrintStream;
 import java.util.HashMap;
 
 /**
@@ -18,7 +19,6 @@ import java.util.HashMap;
 class RgbMap extends HashMap<Rgb, Character> {
 
     private char nextChar = 'A';
-    private final int[] pixel = new int[3];
 
     public RgbMap() {
         putRgb(0x7F, 0x7F, 0x7F, '#');
@@ -63,15 +63,28 @@ class RgbMap extends HashMap<Rgb, Character> {
     }
 
     /**
-     * Returns the Rgb for the color at a specific pixel in a raster.
+     * This method converts a bitmap into text, which it writes to the stream
+     * given. If needed characters are allocated in the map, which means this
+     * map may be changed.
      *
-     * @param raster The image to read from.
-     * @param x The x co-ordinate to read.
-     * @param y The y co-ordinate to read.
-     * @return An Rgb containing the color at this pixel.
+     * @param raster The bitmap to translate.
+     * @param output The stream to write the textual version to.
      */
-    public Rgb getRgb(Raster raster, int x, int y) {
-        raster.getPixel(x, y, pixel);
-        return Rgb.fromBuffer(pixel);
+    public void translateTo(Raster raster, PrintStream output) {
+        int[] pixel = new int[3];
+
+        int width = raster.getWidth();
+        int height = raster.getHeight();
+
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                raster.getPixel(x, y, pixel);
+                Rgb rgb = Rgb.fromBuffer(pixel);
+
+                output.print(getCharForRgb(rgb));
+            }
+
+            output.println();
+        }
     }
 }
