@@ -10,6 +10,8 @@ import java.awt.image.Raster;
 import java.io.File;
 import java.util.HashMap;
 import javax.imageio.*;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 /**
  *
@@ -21,16 +23,31 @@ public class PlayfieldMapConverter {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        File inputFile;
-
         if (args.length > 0) {
-            inputFile = new File(args[0]);
+            mainCli(new File(args[0]));
         } else {
-            throw new IllegalArgumentException("Filename is required.");
+            mainGui();
         }
+    }
 
+    private static void mainCli(File inputFile) throws Exception {
         BufferedImage img = ImageIO.read(inputFile);
         RgbMap rgbMap = new RgbMap();
         rgbMap.translateTo(img.getRaster(), System.out);
+    }
+
+    private static void mainGui() throws Exception {
+        UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                TranslatorFrame frame = new TranslatorFrame();
+                frame.pack();
+                frame.setVisible(true);
+            }
+        });
     }
 }
