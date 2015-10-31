@@ -5,6 +5,9 @@
  */
 package playfieldmapconverter;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -33,13 +36,24 @@ public class TranslatorFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenu2 = new javax.swing.JMenu();
         openButton = new javax.swing.JButton();
         splitPanel = new javax.swing.JSplitPane();
         mapPanel = new playfieldmapconverter.MapPanel();
         translationScrollPanel = new javax.swing.JScrollPane();
         translatedTextArea = new javax.swing.JTextArea();
+        copyButton = new javax.swing.JButton();
+
+        jMenu1.setText("File");
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Playfield Map Converter");
 
         openButton.setText("Open...");
         openButton.addActionListener(new java.awt.event.ActionListener() {
@@ -72,6 +86,13 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         splitPanel.setRightComponent(translationScrollPanel);
 
+        copyButton.setText("Copy to Clipboard");
+        copyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -79,10 +100,11 @@ public class TranslatorFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(splitPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(openButton)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(splitPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(copyButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -91,7 +113,9 @@ public class TranslatorFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(splitPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(openButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(openButton)
+                    .addComponent(copyButton))
                 .addContainerGap())
         );
 
@@ -99,6 +123,28 @@ public class TranslatorFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
+        openMap();
+    }//GEN-LAST:event_openButtonActionPerformed
+
+    private void copyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyButtonActionPerformed
+        StringSelection translation = new StringSelection(translatedTextArea.getText());
+        Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+        cb.setContents(translation, translation);
+    }//GEN-LAST:event_copyButtonActionPerformed
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton copyButton;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
+    private playfieldmapconverter.MapPanel mapPanel;
+    private javax.swing.JButton openButton;
+    private javax.swing.JSplitPane splitPanel;
+    private javax.swing.JTextArea translatedTextArea;
+    private javax.swing.JScrollPane translationScrollPanel;
+    // End of variables declaration//GEN-END:variables
+
+    private void openMap() {
         JFileChooser chooser = new JFileChooser();
 
         int result = chooser.showOpenDialog(this);
@@ -106,15 +152,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             loadMap(chooser.getSelectedFile());
         }
-    }//GEN-LAST:event_openButtonActionPerformed
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private playfieldmapconverter.MapPanel mapPanel;
-    private javax.swing.JButton openButton;
-    private javax.swing.JSplitPane splitPanel;
-    private javax.swing.JTextArea translatedTextArea;
-    private javax.swing.JScrollPane translationScrollPanel;
-    // End of variables declaration//GEN-END:variables
+    }
 
     public void loadMap(File file) {
         try {
