@@ -33,7 +33,8 @@ public class PlayfieldMapConverter {
     private static void mainCli(File inputFile) throws Exception {
         BufferedImage img = ImageIO.read(inputFile);
         RgbMap rgbMap = new RgbMap();
-        rgbMap.translateTo(img.getRaster(), System.out);
+        String translated = rgbMap.translate(img.getRaster());
+        System.out.print(translated);
     }
 
     private static void mainGui() throws Exception {

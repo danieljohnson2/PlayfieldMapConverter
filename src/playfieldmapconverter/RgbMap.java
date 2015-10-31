@@ -68,9 +68,12 @@ class RgbMap extends HashMap<Rgb, Character> {
      * map may be changed.
      *
      * @param raster The bitmap to translate.
-     * @param output The stream to write the textual version to.
+     * @return The translated text.
      */
-    public void translateTo(Raster raster, PrintStream output) {
+    public String translate(Raster raster) {
+        StringBuilder b = new  StringBuilder();
+        String newLine = String.format("%n");
+        
         int[] pixel = new int[3];
 
         int width = raster.getWidth();
@@ -81,10 +84,12 @@ class RgbMap extends HashMap<Rgb, Character> {
                 raster.getPixel(x, y, pixel);
                 Rgb rgb = Rgb.fromBuffer(pixel);
 
-                output.print(getCharForRgb(rgb));
+                b.append(getCharForRgb(rgb));
             }
 
-            output.println();
+            b.append(newLine);
         }
+        
+        return b.toString();
     }
 }
