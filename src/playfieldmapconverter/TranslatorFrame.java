@@ -80,7 +80,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         translatedTextArea.setEditable(false);
         translatedTextArea.setColumns(20);
-        translatedTextArea.setFont(new java.awt.Font("Ubuntu Mono", 0, 18)); // NOI18N
+        translatedTextArea.setFont(new java.awt.Font("Monospaced", 0, 18)); // NOI18N
         translatedTextArea.setRows(5);
         translationScrollPanel.setViewportView(translatedTextArea);
 
