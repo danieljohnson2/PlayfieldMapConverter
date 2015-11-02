@@ -5,7 +5,11 @@
  */
 package playfieldmapconverter;
 
+import java.util.Objects;
+
 /**
+ * This holds the data for a single legend entry; a character and the text that
+ * describes what that character means.
  *
  * @author danj
  */
@@ -16,6 +20,6 @@ final class LegendEntry {
 
     public LegendEntry(char letter, String definition) {
         this.letter = letter;
-        this.definition = definition;
+        this.definition = Objects.requireNonNull(definition);
     }
 }

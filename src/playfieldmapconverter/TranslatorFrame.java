@@ -63,7 +63,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
         });
 
         mapPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        mapPanel.setPreferredSize(new java.awt.Dimension(100, 100));
+        mapPanel.setPreferredSize(new java.awt.Dimension(200, 200));
 
         javax.swing.GroupLayout mapPanelLayout = new javax.swing.GroupLayout(mapPanel);
         mapPanel.setLayout(mapPanelLayout);

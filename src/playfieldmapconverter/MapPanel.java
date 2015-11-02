@@ -28,9 +28,21 @@ public class MapPanel extends JPanel {
         super.paintComponent(g);
 
         if (image != null) {
+            int imageWidth = image.getWidth();
+            int imageHeight = image.getHeight();
+
             Dimension size = this.getSize();
 
-            g.drawImage(image, 0, 0, (int)size.getWidth(), (int)size.getHeight(), null);
+            double scaleX = size.getWidth() / imageWidth;
+            double scaleY = size.getHeight() / imageHeight;
+            double scale = Math.min(scaleX, scaleY);
+
+            int drawWidth = (int) (imageWidth * scale);
+            int drawHeight = (int) (imageHeight * scale);
+            int offsetX = (int) ((size.getWidth() - drawWidth) / 2);
+            int offsetY = (int) ((size.getHeight() - drawHeight) / 2);
+
+            g.drawImage(image, offsetX, offsetY, drawWidth, drawHeight, null);
         }
     }
 }
