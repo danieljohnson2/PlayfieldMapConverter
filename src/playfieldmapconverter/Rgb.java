@@ -112,7 +112,7 @@ final class Rgb {
             return -1;
         }
 
-        int ri = getChannelInternIndex(g);
+        int ri = getChannelInternIndex(r);
 
         if (ri < 0) {
             return -1;

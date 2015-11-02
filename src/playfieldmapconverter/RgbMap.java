@@ -6,27 +6,27 @@
 package playfieldmapconverter;
 
 import java.awt.image.Raster;
-import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
- * RgbMap is a mapping that maps RGB color values to characters that represent
- * them in the output file. This can allocate characters, but starts with a
- * library of 'known' characters.
+ * RgbMap is a mapping that maps RGB color values to cells that can be placed in
+ * a Playfield map. This can allocate characters, but starts with a library of
+ * 'known' characters.
  *
  * @author danj
  */
-class RgbMap extends HashMap<Rgb, Character> {
+final class RgbMap extends HashMap<Rgb, LegendEntry> {
 
     private char nextChar = 'A';
 
     public RgbMap() {
-        putRgb(0x7F, 0x7F, 0x7F, '#');
-        putRgb(0x00, 0xFF, 0x00, ',');
-        putRgb(0xFF, 0xFF, 0x00, '.');
-        putRgb(0x00, 0x7F, 0x00, '&');
-        putRgb(0x7F, 0x00, 0x00, '+');
-        putRgb(0x00, 0x00, 0xFF, '/');
+        putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
+        putRgb(0x00, 0xFF, 0x00, ',', "Path");
+        putRgb(0xFF, 0xFF, 0x00, '.', "Grass");
+        putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
+        putRgb(0x7F, 0x00, 0x00, '+', "Door");
+        putRgb(0x00, 0x00, 0xFF, '/', "Water");
     }
 
     /**
@@ -36,22 +36,24 @@ class RgbMap extends HashMap<Rgb, Character> {
      * @param g The blue channel, 0-255.
      * @param b The green channel, 0-255.
      * @param letter A letter to represent the color.
+     * @param defintiion The definition text for the final file.
      */
-    public void putRgb(int r, int g, int b, char letter) {
-        put(Rgb.fromRgb(r, g, b), letter);
+    public void putRgb(int r, int g, int b, char letter, String definition) {
+        put(Rgb.fromRgb(r, g, b), new LegendEntry(letter, definition));
     }
 
     /**
-     * This method selects a character to represent a specific color.
+     * This method selects an entry to represent a specific color, or creates
+     * one if required..
      *
      * @param rgb The color to represent.
-     * @return The character to use for this color.
+     * @return The legend entry for for this color.
      */
-    public char getCharForRgb(Rgb rgb) {
-        Character found = get(rgb);
+    public LegendEntry getOrCreate(Rgb rgb) {
+        LegendEntry found = get(rgb);
         if (found == null) {
             do {
-                found = nextChar;
+                found = new LegendEntry(nextChar, "undefined");
                 ++nextChar;
             } while (containsKey(nextChar));
 
@@ -71,9 +73,9 @@ class RgbMap extends HashMap<Rgb, Character> {
      * @return The translated text.
      */
     public String translate(Raster raster) {
-        StringBuilder b = new  StringBuilder();
+        StringBuilder b = new StringBuilder();
         String newLine = String.format("%n");
-        
+
         int[] pixel = new int[3];
 
         int width = raster.getWidth();
@@ -84,12 +86,18 @@ class RgbMap extends HashMap<Rgb, Character> {
                 raster.getPixel(x, y, pixel);
                 Rgb rgb = Rgb.fromBuffer(pixel);
 
-                b.append(getCharForRgb(rgb));
+                b.append(getOrCreate(rgb).letter);
             }
 
             b.append(newLine);
         }
-        
+
+        b.append("-" + newLine);
+
+        for (LegendEntry e : values()) {
+            b.append(String.format("%s: %s%n", e.letter, e.definition));
+        }
+
         return b.toString();
     }
 }
