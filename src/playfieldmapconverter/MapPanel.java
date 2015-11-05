@@ -5,11 +5,18 @@
  */
 package playfieldmapconverter;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Event;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import javax.swing.JPanel;
@@ -23,7 +30,8 @@ public class MapPanel extends JPanel implements MouseListener {
     private BufferedImage image;
     private double imageScale = 1.0;
     private int offsetX, offsetY;
-    private int selectedX = -1, selectedY = -1;
+    private Rgb selectedColor = null;
+    private Shape selected = null;
 
     public MapPanel() {
         addMouseListener(this);
@@ -39,6 +47,8 @@ public class MapPanel extends JPanel implements MouseListener {
         super.paintComponent(g);
 
         if (image != null) {
+            Graphics2D g2 = (Graphics2D) g.create();
+
             int imageWidth = image.getWidth();
             int imageHeight = image.getHeight();
 
@@ -53,17 +63,21 @@ public class MapPanel extends JPanel implements MouseListener {
             offsetX = (int) ((size.getWidth() - drawWidth) / 2);
             offsetY = (int) ((size.getHeight() - drawHeight) / 2);
 
-            g.drawImage(image, offsetX, offsetY, drawWidth, drawHeight, null);
+            g2.translate(offsetX, offsetY);
+            g2.scale(imageScale, imageScale);
 
-            if (selectedX >= 0 && selectedY >= 0) {
-                int selSize = (int) Math.ceil(imageScale);
+            g2.drawImage(image, 0, 0, null);
 
-                g.drawRect(
-                        (int) (selectedX * imageScale + offsetX),
-                        (int) (selectedY * imageScale + offsetY),
-                        selSize,
-                        selSize);
+            if (selected != null) {
+                g2.setColor(new Color(0, 0, 0, .4f));
+                g2.fill(selected);
+
+                g2.setColor(Color.BLACK);
+                g2.setStroke(new BasicStroke(2.0f / (float) imageScale));
+                g2.draw(selected);
             }
+
+            g2.dispose();
         }
     }
 
@@ -73,18 +87,32 @@ public class MapPanel extends JPanel implements MouseListener {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        selectedX = -1;
-        selectedY = -1;
+        selected = null;
+        selectedColor = null;
 
         if (image != null) {
-            int x = (int) ((e.getX() - offsetX) / imageScale);
-            int y = (int) ((e.getY() - offsetY) / imageScale);
+            int hitX = (int) ((e.getX() - offsetX) / imageScale);
+            int hitY = (int) ((e.getY() - offsetY) / imageScale);
 
             Raster raster = image.getRaster();
-            if (x >= 0 && x < raster.getWidth()
-                    && y >= 0 && y < raster.getHeight()) {
-                selectedX = x;
-                selectedY = y;
+            if (hitX >= 0 && hitX < raster.getWidth()
+                    && hitY >= 0 && hitY < raster.getHeight()) {
+
+                selectedColor = Rgb.fromPixel(image, hitX, hitY);
+                int height = image.getHeight();
+                int width = image.getWidth();
+
+                Area area = new Area();
+
+                for (int y = 0; y < height; ++y) {
+                    for (int x = 0; x < width; ++x) {
+                        if (selectedColor.equals(Rgb.fromPixel(image, x, y))) {
+                            area.add(new Area(new Rectangle(x, y, 1, 1)));
+                        }
+                    }
+                }
+
+                selected = area;
             }
         }
 

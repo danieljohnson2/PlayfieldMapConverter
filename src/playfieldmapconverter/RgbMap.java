@@ -5,9 +5,8 @@
  */
 package playfieldmapconverter;
 
-import java.awt.image.Raster;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * RgbMap is a mapping that maps RGB color values to cells that can be placed in
@@ -72,20 +71,16 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
      * @param raster The bitmap to translate.
      * @return The translated text.
      */
-    public String translate(Raster raster) {
+    public String translate(BufferedImage image) {
         StringBuilder b = new StringBuilder();
         String newLine = String.format("%n");
 
-        int[] pixel = new int[3];
-
-        int width = raster.getWidth();
-        int height = raster.getHeight();
+        int width = image.getWidth();
+        int height = image.getHeight();
 
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                raster.getPixel(x, y, pixel);
-                Rgb rgb = Rgb.fromBuffer(pixel);
-
+                Rgb rgb = Rgb.fromPixel(image, x, y);
                 b.append(getOrCreate(rgb).letter);
             }
 

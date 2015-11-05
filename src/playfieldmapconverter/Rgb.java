@@ -5,6 +5,8 @@
  */
 package playfieldmapconverter;
 
+import java.awt.image.BufferedImage;
+
 /**
  * Rgb represents a color, and stores it as a 32 bit integer; we use this as a
  * key in the RgpMap class.
@@ -73,18 +75,18 @@ final class Rgb {
     }
 
     /**
-     * This method generates an Rgb instance from a buffer that is used with a
-     * Raster instance; the pixels are actually 16-bits wide here. They are all
-     * ints because they are postivie numbers, and a 'short' won't hold the
-     * maximum value 0xFFFF.
+     * This method retreives a pixel from an image.
      *
-     * @param buffer The buffer to read pixel data from.
-     * @return An Rgb instance holding the buffer data.
+     * @param image The image to read.
+     * @param x The x co-ordinate to read from.
+     * @param y The y co-ordinate to read from.
+     * @return The RGB color found (without the alpha component).
      */
-    public static Rgb fromBuffer(int[] buffer) {
-        int r = buffer[0] >>> 8;
-        int g = buffer[1] >>> 8;
-        int b = buffer[2] >>> 8;
+    public static Rgb fromPixel(BufferedImage image, int x, int y) {
+        int color = image.getRGB(x, y);
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
         return fromRgb(r, g, b);
     }
 
