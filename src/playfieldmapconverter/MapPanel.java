@@ -12,6 +12,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Area;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.JPanel;
 
 /**
@@ -34,13 +37,17 @@ public class MapPanel extends JPanel implements MouseListener {
     private int offsetX, offsetY;
     private Rgb selectedColor = null;
     private Shape selected = null;
-    private List<SelectionChangedListener> selectionChangedListeners = new ArrayList<>();
+    private List<ActionListener> actionListeners = new ArrayList<>();
 
     public MapPanel() {
         addMouseListener(this);
     }
+    
+    public BufferedImage getImage() {
+        return image;
+    }
 
-    public void loadImage(BufferedImage image) {
+    public void setImage(BufferedImage image) {
         this.image = image;
         repaint();
     }
@@ -83,39 +90,36 @@ public class MapPanel extends JPanel implements MouseListener {
             g2.dispose();
         }
     }
-    
+
     public Rgb getSelectedColor() {
         return selectedColor;
     }
 
-    public interface SelectionChangedListener extends EventListener {
+    private void setSelectedColor(Rgb newColor) {
+        if (!Objects.equals(newColor, selectedColor)) {
+            Rgb oldColor = selectedColor;
+            selectedColor = newColor;
 
-        void selectionChanged(SelectionChangedEvent event);
-    }
-
-    public class SelectionChangedEvent extends EventObject {
-
-        public SelectionChangedEvent(Object source) {
-            super(source);
+            repaint();
+            firePropertyChange("SelectedColor", oldColor, newColor);
         }
-    }
-
-    public void addSelectionChangedListener(SelectionChangedListener listener) {
-        selectionChangedListeners.add(listener);
-    }
-
-    public void removeSelectionChangedListener(SelectionChangedListener listener) {
-        selectionChangedListeners.remove(listener);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
+            ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_FIRST, "Clicked");
+            
+            for (ActionListener l : actionListeners) {
+                l.actionPerformed(evt);
+            }
+        }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         selected = null;
-        selectedColor = null;
+        Rgb clickedColor = null;
 
         if (image != null) {
             int hitX = (int) ((e.getX() - offsetX) / imageScale);
@@ -125,7 +129,8 @@ public class MapPanel extends JPanel implements MouseListener {
             if (hitX >= 0 && hitX < raster.getWidth()
                     && hitY >= 0 && hitY < raster.getHeight()) {
 
-                selectedColor = Rgb.fromPixel(image, hitX, hitY);
+                clickedColor = Rgb.fromPixel(image, hitX, hitY);
+
                 int height = image.getHeight();
                 int width = image.getWidth();
 
@@ -133,23 +138,19 @@ public class MapPanel extends JPanel implements MouseListener {
 
                 for (int y = 0; y < height; ++y) {
                     for (int x = 0; x < width; ++x) {
-                        if (selectedColor.equals(Rgb.fromPixel(image, x, y))) {
+                        if (clickedColor.equals(Rgb.fromPixel(image, x, y))) {
                             area.add(new Area(new Rectangle(x, y, 1, 1)));
                         }
                     }
                 }
 
                 selected = area;
-                
-                SelectionChangedEvent evt = new SelectionChangedEvent(this);
-                
-                for(SelectionChangedListener l : selectionChangedListeners) {
-                    l.selectionChanged(evt);
-                }
+
+                setSelectedColor(clickedColor);
             }
         }
 
-        repaint();
+        setSelectedColor(clickedColor);
     }
 
     @Override
@@ -162,5 +163,13 @@ public class MapPanel extends JPanel implements MouseListener {
 
     @Override
     public void mouseExited(MouseEvent e) {
+    }
+
+    public void addActionListener(ActionListener listener) {
+        actionListeners.add(listener);
+    }
+
+    public void removeActionListener(ActionListener listener) {
+        actionListeners.remove(listener);
     }
 }

@@ -104,7 +104,8 @@
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="selectionChanged" listener="playfieldmapconverter.MapPanel$SelectionChangedListener" parameters="playfieldmapconverter.MapPanel$SelectionChangedEvent" handler="mapPanelSelectionChanged"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mapPanelActionPerformed"/>
+            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="mapPanelPropertyChange"/>
           </Events>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">

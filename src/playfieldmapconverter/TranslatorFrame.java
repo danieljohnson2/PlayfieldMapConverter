@@ -8,6 +8,8 @@ package playfieldmapconverter;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,8 @@ import javax.swing.JFileChooser;
  * @author danj
  */
 public class TranslatorFrame extends javax.swing.JFrame {
+
+    private RgbMap rgbMap = new RgbMap();
 
     /**
      * Creates new form TranslatorFrame
@@ -66,9 +70,14 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         mapPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         mapPanel.setPreferredSize(new java.awt.Dimension(350, 200));
-        mapPanel.addSelectionChangedListener(new playfieldmapconverter.MapPanel.SelectionChangedListener() {
-            public void selectionChanged(playfieldmapconverter.MapPanel.SelectionChangedEvent evt) {
-                mapPanelSelectionChanged(evt);
+        mapPanel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mapPanelActionPerformed(evt);
+            }
+        });
+        mapPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                mapPanelPropertyChange(evt);
             }
         });
 
@@ -146,9 +155,25 @@ public class TranslatorFrame extends javax.swing.JFrame {
         cb.setContents(translation, translation);
     }//GEN-LAST:event_copyButtonActionPerformed
 
-    private void mapPanelSelectionChanged(playfieldmapconverter.MapPanel.SelectionChangedEvent evt) {//GEN-FIRST:event_mapPanelSelectionChanged
-        updateSelectionSummary();
-    }//GEN-LAST:event_mapPanelSelectionChanged
+    private void mapPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_mapPanelPropertyChange
+        if (evt.getPropertyName() == null || evt.getPropertyName().equals("SelectedColor")) {
+            updateSelectionSummary();
+        }
+    }//GEN-LAST:event_mapPanelPropertyChange
+
+    private void mapPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapPanelActionPerformed
+        LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
+
+        f.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                updateTranslation();
+                updateSelectionSummary();
+            }
+        });
+
+        f.setVisible(true);
+    }//GEN-LAST:event_mapPanelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton copyButton;
@@ -165,36 +190,40 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private void openMap() {
         JFileChooser chooser = new JFileChooser();
-        
+
         int result = chooser.showOpenDialog(this);
-        
+
         if (result == JFileChooser.APPROVE_OPTION) {
             loadMap(chooser.getSelectedFile());
         }
     }
-    
+
     public void loadMap(File file) {
         try {
             BufferedImage image = ImageIO.read(file);
-            RgbMap rgbMap = new RgbMap();
-            
-            String translated = rgbMap.translate(image);
-            
-            mapPanel.loadImage(image);
-            translatedTextArea.setText(translated);
+
+            mapPanel.setImage(image);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+
+        updateTranslation();
     }
-    
+
+    private void updateTranslation() {
+        BufferedImage image = mapPanel.getImage();
+
+        String translated = image != null ? rgbMap.translate(image) : "";
+        translatedTextArea.setText(translated);
+    }
+
     private void updateSelectionSummary() {
         Rgb rgb = mapPanel.getSelectedColor();
-        
+
         if (rgb == null) {
             selectionSummaryLabel.setText("(no selection)");
         } else {
-            RgbMap map = new RgbMap();
-            LegendEntry entry = map.getOrCreate(rgb);
+            LegendEntry entry = rgbMap.getOrCreate(rgb);
             selectionSummaryLabel.setText(entry.toString());
         }
     }
