@@ -8,17 +8,19 @@ package playfieldmapconverter;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.EventObject;
+import java.util.List;
 import javax.swing.JPanel;
 
 /**
@@ -32,6 +34,7 @@ public class MapPanel extends JPanel implements MouseListener {
     private int offsetX, offsetY;
     private Rgb selectedColor = null;
     private Shape selected = null;
+    private List<SelectionChangedListener> selectionChangedListeners = new ArrayList<>();
 
     public MapPanel() {
         addMouseListener(this);
@@ -80,6 +83,30 @@ public class MapPanel extends JPanel implements MouseListener {
             g2.dispose();
         }
     }
+    
+    public Rgb getSelectedColor() {
+        return selectedColor;
+    }
+
+    public interface SelectionChangedListener extends EventListener {
+
+        void selectionChanged(SelectionChangedEvent event);
+    }
+
+    public class SelectionChangedEvent extends EventObject {
+
+        public SelectionChangedEvent(Object source) {
+            super(source);
+        }
+    }
+
+    public void addSelectionChangedListener(SelectionChangedListener listener) {
+        selectionChangedListeners.add(listener);
+    }
+
+    public void removeSelectionChangedListener(SelectionChangedListener listener) {
+        selectionChangedListeners.remove(listener);
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -113,6 +140,12 @@ public class MapPanel extends JPanel implements MouseListener {
                 }
 
                 selected = area;
+                
+                SelectionChangedEvent evt = new SelectionChangedEvent(this);
+                
+                for(SelectionChangedListener l : selectionChangedListeners) {
+                    l.selectionChanged(evt);
+                }
             }
         }
 

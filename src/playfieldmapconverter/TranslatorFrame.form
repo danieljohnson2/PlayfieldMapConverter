@@ -53,6 +53,10 @@
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="copyButton" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="selectionSummaryLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -62,7 +66,9 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="splitPanel" pref="421" max="32767" attributes="0"/>
+              <Component id="splitPanel" pref="393" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="selectionSummaryLabel" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="openButton" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -97,6 +103,9 @@
               <Dimension value="[350, 200]"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="selectionChanged" listener="playfieldmapconverter.MapPanel$SelectionChangedListener" parameters="playfieldmapconverter.MapPanel$SelectionChangedEvent" handler="mapPanelSelectionChanged"/>
+          </Events>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
               <JSplitPaneConstraints position="left"/>
@@ -149,6 +158,11 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyButtonActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="selectionSummaryLabel">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Selection here"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

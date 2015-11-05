@@ -25,6 +25,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
      */
     public TranslatorFrame() {
         initComponents();
+        updateSelectionSummary();
     }
 
     /**
@@ -45,6 +46,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
         translationScrollPanel = new javax.swing.JScrollPane();
         translatedTextArea = new javax.swing.JTextArea();
         copyButton = new javax.swing.JButton();
+        selectionSummaryLabel = new javax.swing.JLabel();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -64,6 +66,11 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         mapPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         mapPanel.setPreferredSize(new java.awt.Dimension(350, 200));
+        mapPanel.addSelectionChangedListener(new playfieldmapconverter.MapPanel.SelectionChangedListener() {
+            public void selectionChanged(playfieldmapconverter.MapPanel.SelectionChangedEvent evt) {
+                mapPanelSelectionChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout mapPanelLayout = new javax.swing.GroupLayout(mapPanel);
         mapPanel.setLayout(mapPanelLayout);
@@ -93,6 +100,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
             }
         });
 
+        selectionSummaryLabel.setText("Selection here");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -104,14 +113,19 @@ public class TranslatorFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(openButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(copyButton)))
+                        .addComponent(copyButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(selectionSummaryLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(splitPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE)
+                .addComponent(splitPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 393, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(selectionSummaryLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(openButton)
@@ -132,6 +146,10 @@ public class TranslatorFrame extends javax.swing.JFrame {
         cb.setContents(translation, translation);
     }//GEN-LAST:event_copyButtonActionPerformed
 
+    private void mapPanelSelectionChanged(playfieldmapconverter.MapPanel.SelectionChangedEvent evt) {//GEN-FIRST:event_mapPanelSelectionChanged
+        updateSelectionSummary();
+    }//GEN-LAST:event_mapPanelSelectionChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton copyButton;
     private javax.swing.JMenu jMenu1;
@@ -139,6 +157,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private playfieldmapconverter.MapPanel mapPanel;
     private javax.swing.JButton openButton;
+    private javax.swing.JLabel selectionSummaryLabel;
     private javax.swing.JSplitPane splitPanel;
     private javax.swing.JTextArea translatedTextArea;
     private javax.swing.JScrollPane translationScrollPanel;
@@ -146,25 +165,37 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private void openMap() {
         JFileChooser chooser = new JFileChooser();
-
+        
         int result = chooser.showOpenDialog(this);
-
+        
         if (result == JFileChooser.APPROVE_OPTION) {
             loadMap(chooser.getSelectedFile());
         }
     }
-
+    
     public void loadMap(File file) {
         try {
             BufferedImage image = ImageIO.read(file);
             RgbMap rgbMap = new RgbMap();
-
+            
             String translated = rgbMap.translate(image);
-
+            
             mapPanel.loadImage(image);
             translatedTextArea.setText(translated);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+    
+    private void updateSelectionSummary() {
+        Rgb rgb = mapPanel.getSelectedColor();
+        
+        if (rgb == null) {
+            selectionSummaryLabel.setText("(no selection)");
+        } else {
+            RgbMap map = new RgbMap();
+            LegendEntry entry = map.getOrCreate(rgb);
+            selectionSummaryLabel.setText(entry.toString());
         }
     }
 }

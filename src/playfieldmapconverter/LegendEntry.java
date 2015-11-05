@@ -22,4 +22,9 @@ final class LegendEntry {
         this.letter = letter;
         this.definition = Objects.requireNonNull(definition);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s", letter, definition);
+    }
 }

@@ -90,7 +90,7 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         b.append("-" + newLine);
 
         for (LegendEntry e : values()) {
-            b.append(String.format("%s: %s%n", e.letter, e.definition));
+            b.append(e + newLine);
         }
 
         return b.toString();
