@@ -5,11 +5,21 @@
  */
 package playfieldmapconverter;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.Objects;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 
 /**
  *
@@ -38,6 +48,7 @@ public class LegendDialog extends javax.swing.JDialog {
             list.addElement(new Entry(e.getKey(), e.getValue()));
         }
 
+        entryList.setCellRenderer(new CellRenderer());
         entryList.setModel(list);
         entryList.setSelectedIndex(selectedIndex);
     }
@@ -55,6 +66,46 @@ public class LegendDialog extends javax.swing.JDialog {
         @Override
         public String toString() {
             return legendEntry.toString();
+        }
+    }
+
+    private final class CellRenderer extends JLabel implements ListCellRenderer<Entry> {
+
+        private Rgb swatchColor;
+
+        @Override
+        public void paint(Graphics g) {
+            g.setColor(this.getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            super.paint(g);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<? extends Entry> list, Entry entry, int index, boolean isSelected, boolean cellHasFocus) {
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            
+            Font font = list.getFont();
+            int lineHeight = (int)list.getFontMetrics(font).getHeight();
+
+            BufferedImage swatch = new BufferedImage(lineHeight, lineHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = swatch.createGraphics();
+            g.setColor(entry.color.toColor());
+            g.fillRect(0, 0, swatch.getWidth(), swatch.getHeight());
+            g.setColor(Color.BLACK);
+            g.drawRect(0, 0, swatch.getWidth() - 1, swatch.getHeight() - 1);
+            g.dispose();;
+
+            setIcon(new ImageIcon(swatch));
+            setText(entry.toString());
+            setFont(font);
+            return this;
         }
     }
 

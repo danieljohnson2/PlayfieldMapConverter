@@ -5,6 +5,7 @@
  */
 package playfieldmapconverter;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 /**
@@ -46,6 +47,15 @@ final class Rgb {
      */
     public int getBlue() {
         return rgb & 0xFF;
+    }
+
+    /**
+     * This converts an RGB to a Java Color object, for drawing.
+     *
+     * @return This same color, as a Java Color object.
+     */
+    public Color toColor() {
+        return new Color(rgb);
     }
 
     /**
