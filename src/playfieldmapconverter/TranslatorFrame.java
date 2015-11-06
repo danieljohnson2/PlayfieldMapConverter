@@ -21,7 +21,7 @@ import javax.swing.JFileChooser;
  * @author danj
  */
 public class TranslatorFrame extends javax.swing.JFrame {
-
+    
     private RgbMap rgbMap = new RgbMap();
 
     /**
@@ -163,7 +163,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private void mapPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapPanelActionPerformed
         LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
-
+        f.setLocationRelativeTo(this);
+        
         f.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -171,7 +172,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
                 updateSelectionSummary();
             }
         });
-
+        
         f.setVisible(true);
     }//GEN-LAST:event_mapPanelActionPerformed
 
@@ -190,36 +191,36 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private void openMap() {
         JFileChooser chooser = new JFileChooser();
-
+        
         int result = chooser.showOpenDialog(this);
-
+        
         if (result == JFileChooser.APPROVE_OPTION) {
             loadMap(chooser.getSelectedFile());
         }
     }
-
+    
     public void loadMap(File file) {
         try {
             BufferedImage image = ImageIO.read(file);
-
+            
             mapPanel.setImage(image);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-
+        
         updateTranslation();
     }
-
+    
     private void updateTranslation() {
         BufferedImage image = mapPanel.getImage();
-
+        
         String translated = image != null ? rgbMap.translate(image) : "";
         translatedTextArea.setText(translated);
     }
-
+    
     private void updateSelectionSummary() {
         Rgb rgb = mapPanel.getSelectedColor();
-
+        
         if (rgb == null) {
             selectionSummaryLabel.setText("(no selection)");
         } else {
