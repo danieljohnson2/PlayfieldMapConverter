@@ -30,8 +30,8 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
     public static RgbMap createDefault() {
         RgbMap map = new RgbMap();
         map.putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
-        map.putRgb(0x00, 0xFF, 0x00, ',', "Path");
-        map.putRgb(0xFF, 0xFF, 0x00, '.', "Grass");
+        map.putRgb(0xFF, 0xFF, 0x00, ',', "Path");
+        map.putRgb(0x00, 0xFF, 0x00, '.', "Grass");
         map.putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
         map.putRgb(0x7F, 0x00, 0x00, '+', "Door");
         map.putRgb(0x00, 0x00, 0xFF, '/', "Water");
@@ -144,7 +144,10 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
 
     public void writeTo(PrintStream stream) throws IOException {
         for (Entry<Rgb, LegendEntry> e : entrySet()) {
-            stream.println(String.format("%s:%s", e.getKey(), e.getValue()));
+            stream.println(String.format("%s:%s:%s",
+                    e.getKey(),
+                    e.getValue().letter,
+                    e.getValue().definition));
         }
     }
 }

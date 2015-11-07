@@ -25,6 +25,6 @@ final class LegendEntry {
 
     @Override
     public String toString() {
-        return String.format("%s: %s", letter, definition);
+        return String.format("%s %s", letter, definition);
     }
 }
