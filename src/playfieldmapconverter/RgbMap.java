@@ -6,6 +6,11 @@
 package playfieldmapconverter;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 
 /**
@@ -20,12 +25,17 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
     private char nextChar = 'A';
 
     public RgbMap() {
-        putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
-        putRgb(0x00, 0xFF, 0x00, ',', "Path");
-        putRgb(0xFF, 0xFF, 0x00, '.', "Grass");
-        putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
-        putRgb(0x7F, 0x00, 0x00, '+', "Door");
-        putRgb(0x00, 0x00, 0xFF, '/', "Water");
+    }
+
+    public static RgbMap createDefault() {
+        RgbMap map = new RgbMap();
+        map.putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
+        map.putRgb(0x00, 0xFF, 0x00, ',', "Path");
+        map.putRgb(0xFF, 0xFF, 0x00, '.', "Grass");
+        map.putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
+        map.putRgb(0x7F, 0x00, 0x00, '+', "Door");
+        map.putRgb(0x00, 0x00, 0xFF, '/', "Water");
+        return map;
     }
 
     /**
@@ -94,5 +104,47 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         }
 
         return b.toString();
+    }
+
+    public static RgbMap readFrom(File file) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return readFrom(reader);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static RgbMap readFrom(BufferedReader reader) throws IOException {
+        RgbMap rgbMap = new RgbMap();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            int col1 = line.indexOf(":");
+            int col2 = line.indexOf(":", col1 + 1);
+
+            String colorText = line.substring(0, col1).trim();
+            String letterText = line.substring(col1 + 1, col2);
+            String defintition = line.substring(col2 + 1).trim();
+
+            Rgb rgb = Rgb.parse(colorText);
+            rgbMap.put(rgb, new LegendEntry(letterText.charAt(0), defintition));
+        }
+
+        return rgbMap;
+    }
+
+    public void writeTo(File file) {
+        try {
+            try (PrintStream s = new PrintStream(file)) {
+                writeTo(s);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void writeTo(PrintStream stream) throws IOException {
+        for (Entry<Rgb, LegendEntry> e : entrySet()) {
+            stream.println(String.format("%s:%s", e.getKey(), e.getValue()));
+        }
     }
 }

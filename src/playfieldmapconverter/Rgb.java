@@ -153,6 +153,16 @@ final class Rgb {
         }
     }
 
+    public static Rgb parse(String text) {
+        int rgb = Integer.parseInt(text, 16);
+
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        return fromRgb(r, g, b);
+    }
+
     @Override
     public String toString() {
         return String.format("%06X", rgb);

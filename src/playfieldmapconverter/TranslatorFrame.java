@@ -15,14 +15,16 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
  * @author danj
  */
 public class TranslatorFrame extends javax.swing.JFrame {
-    
-    private RgbMap rgbMap = new RgbMap();
+
+    private RgbMap rgbMap = RgbMap.createDefault();
+    private File rgbMapFile;
 
     /**
      * Creates new form TranslatorFrame
@@ -162,18 +164,24 @@ public class TranslatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mapPanelPropertyChange
 
     private void mapPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapPanelActionPerformed
-        LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
-        f.setLocationRelativeTo(this);
-        
-        f.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                updateTranslation();
-                updateSelectionSummary();
-            }
-        });
-        
-        f.setVisible(true);
+        if (rgbMapFile != null) {
+            LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
+            f.setLocationRelativeTo(this);
+
+            f.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    updateTranslation();
+                    updateSelectionSummary();
+
+                    if (rgbMapFile != null) {
+                        rgbMap.writeTo(rgbMapFile);
+                    }
+                }
+            });
+
+            f.setVisible(true);
+        }
     }//GEN-LAST:event_mapPanelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -191,36 +199,43 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private void openMap() {
         JFileChooser chooser = new JFileChooser();
-        
+        chooser.setFileFilter(new FileNameExtensionFilter("PNG Image", "png"));
+
         int result = chooser.showOpenDialog(this);
-        
+
         if (result == JFileChooser.APPROVE_OPTION) {
             loadMap(chooser.getSelectedFile());
         }
     }
-    
+
     public void loadMap(File file) {
         try {
+            rgbMapFile = new File(file.getParentFile(), file.getName() + ".legend");
+
             BufferedImage image = ImageIO.read(file);
-            
+
+            if (rgbMapFile.exists()) {
+                rgbMap = RgbMap.readFrom(rgbMapFile);
+            }
+
             mapPanel.setImage(image);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        
+
         updateTranslation();
     }
-    
+
     private void updateTranslation() {
         BufferedImage image = mapPanel.getImage();
-        
+
         String translated = image != null ? rgbMap.translate(image) : "";
         translatedTextArea.setText(translated);
     }
-    
+
     private void updateSelectionSummary() {
         Rgb rgb = mapPanel.getSelectedColor();
-        
+
         if (rgb == null) {
             selectionSummaryLabel.setText("(no selection)");
         } else {
