@@ -96,6 +96,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         splitPanel.setLeftComponent(mapPanel);
 
+        translationScrollPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
         translatedTextArea.setEditable(false);
         translatedTextArea.setColumns(20);
         translatedTextArea.setFont(new java.awt.Font("Monospaced", 0, 18)); // NOI18N

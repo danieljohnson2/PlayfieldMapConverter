@@ -9,9 +9,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.*;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
@@ -37,18 +41,27 @@ public class PlayfieldMapConverter {
         System.out.print(translated);
     }
 
-    private static void mainGui() throws Exception {
-        UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
-
+    private static void mainGui() {
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
             public void run() {
-                TranslatorFrame frame = new TranslatorFrame();
-                frame.pack();
-                frame.setVisible(true);
+                try {
+                    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                        if ("Nimbus".equals(info.getName())) {
+                            UIManager.setLookAndFeel(info.getClassName());
+                            break;
+                        }
+                    }
+                    
+                    TranslatorFrame frame = new TranslatorFrame();
+                    frame.pack();
+                    frame.setVisible(true);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
             }
-        });
+        }
+        );
     }
 }
