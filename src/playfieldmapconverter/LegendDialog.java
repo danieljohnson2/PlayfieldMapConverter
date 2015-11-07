@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -27,6 +26,8 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -71,6 +72,26 @@ public class LegendDialog extends javax.swing.JDialog {
         entryList.setCellRenderer(new CellRenderer());
         entryList.setModel(entryListModel);
         entryList.setSelectedIndex(selectedIndex);
+
+        DocumentListener textFieldListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                saveEntry();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                saveEntry();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                saveEntry();
+            }
+        };
+
+        letterField.getDocument().addDocumentListener(textFieldListener);
+        definitionField.getDocument().addDocumentListener(textFieldListener);
     }
 
     private boolean trySave() {
@@ -99,38 +120,43 @@ public class LegendDialog extends javax.swing.JDialog {
         return true;
     }
 
+    private Entry loadedEntry;
+
+    private void loadEntry() {
+        saveEntry();
+
+        Entry e = (Entry) entryList.getSelectedValue();
+        loadedEntry = null; // prevent an implicit save when we do setText().
+
+        if (e != null) {
+            letterField.setText(Character.toString(e.letter));
+            definitionField.setText(e.definition);
+            loadedEntry = e;
+        }
+    }
+
+    private void saveEntry() {
+        if (loadedEntry != null) {
+            if (letterField.getText().length() > 0) {
+                loadedEntry.letter = letterField.getText().charAt(0);
+            }
+
+            loadedEntry.definition = definitionField.getText();
+
+            entryList.repaint();
+        }
+    }
+
     public final class Entry {
 
         public final Rgb color;
-        private char letter;
-        private String definition;
+        public char letter;
+        public String definition;
 
         public Entry(Rgb color, LegendEntry legendEntry) {
             this.color = color;
             this.letter = legendEntry.letter;
             this.definition = legendEntry.definition;
-        }
-
-        public char getLetter() {
-            return letter;
-        }
-
-        public void setLetter(char newLetter) {
-            char oldLetter = letter;
-            letter = newLetter;
-            firePropertyChange("letter", oldLetter, newLetter);
-            entryList.repaint();
-        }
-
-        public String getDefinition() {
-            return definition;
-        }
-
-        public void setDefinition(String newDefinition) {
-            String oldDef = definition;
-            definition = newDefinition;
-            firePropertyChange("definition", oldDef, newDefinition);
-            entryList.repaint();
         }
 
         public LegendEntry toLegendEntry() {
@@ -189,8 +215,8 @@ public class LegendDialog extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
+        jRadioButtonMenuItem1 = new javax.swing.JRadioButtonMenuItem();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -198,7 +224,10 @@ public class LegendDialog extends javax.swing.JDialog {
         letterLabel = new javax.swing.JLabel();
         letterField = new javax.swing.JTextField();
         definitionLabel = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        definitionField = new javax.swing.JTextField();
+
+        jRadioButtonMenuItem1.setSelected(true);
+        jRadioButtonMenuItem1.setText("jRadioButtonMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Legend");
@@ -224,17 +253,17 @@ public class LegendDialog extends javax.swing.JDialog {
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
+        entryList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        entryList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                entryListValueChanged(evt);
+            }
+        });
         jScrollPane1.setViewportView(entryList);
 
         letterLabel.setText("Letter:");
 
-        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, entryList, org.jdesktop.beansbinding.ELProperty.create("${selectedElement.letter}"), letterField, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
-
         definitionLabel.setText("Definition:");
-
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, entryList, org.jdesktop.beansbinding.ELProperty.create("${selectedElement.definition}"), jTextField1, org.jdesktop.beansbinding.BeanProperty.create("text"));
-        bindingGroup.addBinding(binding);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -252,7 +281,7 @@ public class LegendDialog extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(letterField, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE))
+                            .addComponent(definitionField, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE))
                         .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
@@ -272,7 +301,7 @@ public class LegendDialog extends javax.swing.JDialog {
                             .addComponent(letterLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(definitionField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(definitionLabel))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
@@ -282,8 +311,6 @@ public class LegendDialog extends javax.swing.JDialog {
                     .addComponent(okButton))
                 .addContainerGap())
         );
-
-        bindingGroup.bind();
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -298,15 +325,19 @@ public class LegendDialog extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
+    private void entryListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_entryListValueChanged
+        loadEntry();
+    }//GEN-LAST:event_entryListValueChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
+    private javax.swing.JTextField definitionField;
     private javax.swing.JLabel definitionLabel;
     private javax.swing.JList entryList;
+    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField letterField;
     private javax.swing.JLabel letterLabel;
     private javax.swing.JButton okButton;
-    private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
 }
