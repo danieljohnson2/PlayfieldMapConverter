@@ -27,12 +27,14 @@ import java.util.Map;
  */
 final class RgbMap extends HashMap<Rgb, LegendEntry> {
 
-    private char nextChar = 'A';
+    private char nextChar = 'a';
 
     public RgbMap() {
     }
 
-    public static RgbMap createDefault() {
+    private static Map<Rgb, LegendEntry> defaultEntries = createDefault();
+
+    private static Map<Rgb, LegendEntry> createDefault() {
         RgbMap map = new RgbMap();
         map.putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
         map.putRgb(0xFF, 0xFF, 0x00, ',', "Path");
@@ -51,7 +53,7 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
             map.putRgb(i + 1, i + 1, i + 1, letter, def);
         }
 
-        return map;
+        return Collections.unmodifiableMap(map);
     }
 
     /**
@@ -76,16 +78,33 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
      */
     public LegendEntry getOrCreate(Rgb rgb) {
         LegendEntry found = get(rgb);
-        if (found == null) {
-            do {
-                found = new LegendEntry(nextChar, "undefined");
-                ++nextChar;
-            } while (containsKey(nextChar));
 
-            put(rgb, found);
+        if (found != null) {
+            return found;
         }
 
-        return found;
+        LegendEntry defaultEntry = defaultEntries.get(rgb);
+        String definition = "undefined";
+
+        if (defaultEntry != null) {
+            definition = defaultEntry.definition;
+
+            if (!containsKey(defaultEntry.letter)) {
+                found = new LegendEntry(defaultEntry.letter, definition);
+                put(rgb, found);
+                return found;
+            }
+        }
+
+        for (; nextChar < 256; ++nextChar) {
+            if (!containsKey(nextChar)) {
+                found = new LegendEntry(nextChar, definition);
+                put(rgb, found);
+                return found;
+            }
+        }
+
+        throw new IllegalStateException("Too many letters have been used.");
     }
 
     /**
@@ -119,6 +138,12 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         }
 
         return b.toString();
+    }
+
+    public static File getLegendFile(File imageFile) {
+        return new File(
+                imageFile.getParentFile(),
+                imageFile.getName() + ".legend");
     }
 
     public static RgbMap readFrom(File file) {

@@ -34,9 +34,17 @@ public class PlayfieldMapConverter {
         }
     }
 
-    private static void mainCli(File inputFile) throws Exception {
-        BufferedImage img = ImageIO.read(inputFile);
-        RgbMap rgbMap = RgbMap.createDefault();
+    private static void mainCli(File imageFile) throws Exception {
+        File rgbMapFile = RgbMap.getLegendFile(imageFile);
+        BufferedImage img = ImageIO.read(imageFile);
+        RgbMap rgbMap;
+
+        if (rgbMapFile.exists()) {
+            rgbMap = RgbMap.readFrom(rgbMapFile);
+        } else {
+            rgbMap = new RgbMap();
+        }
+
         String translated = rgbMap.translate(img);
         System.out.print(translated);
     }
@@ -53,7 +61,7 @@ public class PlayfieldMapConverter {
                             break;
                         }
                     }
-                    
+
                     TranslatorFrame frame = new TranslatorFrame();
                     frame.pack();
                     frame.setVisible(true);

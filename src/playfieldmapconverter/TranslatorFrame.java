@@ -23,7 +23,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class TranslatorFrame extends javax.swing.JFrame {
 
-    private RgbMap rgbMap = RgbMap.createDefault();
+    private RgbMap rgbMap = new RgbMap();
     private File rgbMapFile;
 
     /**
@@ -212,7 +212,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     public void loadMap(File file) {
         try {
-            rgbMapFile = new File(file.getParentFile(), file.getName() + ".legend");
+            rgbMapFile = RgbMap.getLegendFile(file);
 
             BufferedImage image = ImageIO.read(file);
 
