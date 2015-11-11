@@ -13,6 +13,8 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -200,13 +202,32 @@ public class TranslatorFrame extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     private void openMap() {
+        Preferences prefs = Preferences.userNodeForPackage(TranslatorFrame.class);
+        String mapDir = prefs.get("mapDir", "");
+
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileNameExtensionFilter("PNG Image", "png"));
+
+        if (mapDir.length() > 0) {
+            File mapDirFile = new File(mapDir);
+
+            if (mapDirFile.exists() && mapDirFile.isDirectory()) {
+                chooser.setCurrentDirectory(mapDirFile);
+            }
+        }
 
         int result = chooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            loadMap(chooser.getSelectedFile());
+            File selFile = chooser.getSelectedFile();
+            prefs.put("mapDir", selFile.getParent());
+            try {
+                prefs.sync();
+            } catch (BackingStoreException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            loadMap(selFile);
         }
     }
 

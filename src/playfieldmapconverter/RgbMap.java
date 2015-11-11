@@ -97,7 +97,7 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         }
 
         for (; nextChar < 256; ++nextChar) {
-            if (!containsKey(nextChar)) {
+            if (!containsLetter(nextChar)) {
                 found = new LegendEntry(nextChar, definition);
                 put(rgb, found);
                 return found;
@@ -204,5 +204,15 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         });
 
         return Collections.unmodifiableList(list);
+    }
+
+    public boolean containsLetter(char letter) {
+        for (LegendEntry e : values()) {
+            if (e.letter == letter) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
