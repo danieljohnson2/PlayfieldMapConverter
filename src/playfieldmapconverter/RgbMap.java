@@ -11,7 +11,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * RgbMap is a mapping that maps RGB color values to cells that can be placed in
@@ -35,6 +40,17 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         map.putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
         map.putRgb(0x7F, 0x00, 0x00, '+', "Door");
         map.putRgb(0x00, 0x00, 0xFF, '/', "Water");
+
+        String autoDoorChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        for (int i = 0; i < autoDoorChars.length(); ++i) {
+            char letter = autoDoorChars.charAt(i);
+
+            String def = String.format("Door : AutoDoor%s", letter);
+
+            map.putRgb(i + 1, i + 1, i + 1, letter, def);
+        }
+
         return map;
     }
 
@@ -67,7 +83,6 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
             } while (containsKey(nextChar));
 
             put(rgb, found);
-//            System.out.println(String.format("Found %s -> %s", rgb, found));
         }
 
         return found;
@@ -99,8 +114,8 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
 
         b.append("-" + newLine);
 
-        for (LegendEntry e : values()) {
-            b.append(e + newLine);
+        for (Entry<Rgb, LegendEntry> e : sortedEntryList()) {
+            b.append(e.getValue() + newLine);
         }
 
         return b.toString();
@@ -143,11 +158,26 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
     }
 
     public void writeTo(PrintStream stream) throws IOException {
-        for (Entry<Rgb, LegendEntry> e : entrySet()) {
+        for (Entry<Rgb, LegendEntry> e : sortedEntryList()) {
             stream.println(String.format("%s:%s:%s",
                     e.getKey(),
                     e.getValue().letter,
                     e.getValue().definition));
         }
+    }
+
+    public List<Entry<Rgb, LegendEntry>> sortedEntryList() {
+        List<Entry<Rgb, LegendEntry>> list = new ArrayList<>(entrySet());
+
+        list.sort(new Comparator<Map.Entry<Rgb, LegendEntry>>() {
+            @Override
+            public int compare(Entry<Rgb, LegendEntry> left, Entry<Rgb, LegendEntry> right) {
+                return Character.compare(
+                        left.getValue().letter,
+                        right.getValue().letter);
+            }
+        });
+
+        return Collections.unmodifiableList(list);
     }
 }
