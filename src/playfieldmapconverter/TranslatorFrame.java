@@ -239,6 +239,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
             if (rgbMapFile.exists()) {
                 rgbMap = RgbMap.readFrom(rgbMapFile);
+            } else {
+                rgbMap = new RgbMap();
             }
 
             mapPanel.setImage(image);

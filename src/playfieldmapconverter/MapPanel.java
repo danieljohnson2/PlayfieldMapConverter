@@ -42,13 +42,16 @@ public class MapPanel extends JPanel implements MouseListener {
     public MapPanel() {
         addMouseListener(this);
     }
-    
+
     public BufferedImage getImage() {
         return image;
     }
 
     public void setImage(BufferedImage image) {
         this.image = image;
+        this.selected = null;
+        this.selectedColor = null;
+        
         repaint();
     }
 
@@ -109,7 +112,7 @@ public class MapPanel extends JPanel implements MouseListener {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
             ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_FIRST, "Clicked");
-            
+
             for (ActionListener l : actionListeners) {
                 l.actionPerformed(evt);
             }
