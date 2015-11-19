@@ -39,7 +39,7 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         map.putRgb(0x7F, 0x7F, 0x7F, '#', "Wall");
         map.putRgb(0xFF, 0xFF, 0x00, ',', "Path");
         map.putRgb(0x00, 0xFF, 0x00, '.', "Grass");
-        map.putRgb(0x00, 0x7F, 0x00, '&', "Grass, Trees");
+        map.putRgb(0x00, 0x7F, 0x00, '&', "Tree");
         map.putRgb(0x7F, 0x00, 0x00, '+', "Door");
         map.putRgb(0x00, 0x00, 0xFF, '/', "Water");
 
