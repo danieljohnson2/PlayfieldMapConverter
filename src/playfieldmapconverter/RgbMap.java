@@ -143,7 +143,7 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
     public static File getLegendFile(File imageFile) {
         return new File(
                 imageFile.getParentFile(),
-                imageFile.getName() + ".legend");
+                "Legend.txt");
     }
 
     public static RgbMap readFrom(File file) {
@@ -158,15 +158,19 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         RgbMap rgbMap = new RgbMap();
         String line;
         while ((line = reader.readLine()) != null) {
-            int col1 = line.indexOf(":");
-            int col2 = line.indexOf(":", col1 + 1);
+            if (line.length() < 9
+                    || line.charAt(6) != ':' || line.charAt(8) != ':') {
+                throw new IllegalStateException(String.format(
+                        "The line '%s' does not have the color-letter prefix.",
+                        line));
+            }
 
-            String colorText = line.substring(0, col1).trim();
-            String letterText = line.substring(col1 + 1, col2);
-            String defintition = line.substring(col2 + 1).trim();
+            String colorText = line.substring(0, 6).trim();
+            char letter = line.charAt(7);
+            String defintition = line.substring(9).trim();
 
             Rgb rgb = Rgb.parse(colorText);
-            rgbMap.put(rgb, new LegendEntry(letterText.charAt(0), defintition));
+            rgbMap.put(rgb, new LegendEntry(letter, defintition));
         }
 
         return rgbMap;
