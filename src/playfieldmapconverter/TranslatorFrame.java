@@ -11,7 +11,9 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -27,6 +29,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     private RgbMap rgbMap = new RgbMap();
     private File rgbMapFile;
+    private File imageFile;
 
     /**
      * Creates new form TranslatorFrame
@@ -55,6 +58,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
         translatedTextArea = new javax.swing.JTextArea();
         copyButton = new javax.swing.JButton();
         selectionSummaryLabel = new javax.swing.JLabel();
+        saveButton = new javax.swing.JButton();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -117,6 +121,13 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
         selectionSummaryLabel.setText("Selection here");
 
+        saveButton.setText("Save");
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -128,6 +139,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(openButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(saveButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(copyButton))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(selectionSummaryLabel)
@@ -144,7 +157,8 @@ public class TranslatorFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(openButton)
-                    .addComponent(copyButton))
+                    .addComponent(copyButton)
+                    .addComponent(saveButton))
                 .addContainerGap())
         );
 
@@ -188,6 +202,10 @@ public class TranslatorFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_mapPanelActionPerformed
 
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        saveTranslation();
+    }//GEN-LAST:event_saveButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton copyButton;
     private javax.swing.JMenu jMenu1;
@@ -195,6 +213,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private playfieldmapconverter.MapPanel mapPanel;
     private javax.swing.JButton openButton;
+    private javax.swing.JButton saveButton;
     private javax.swing.JLabel selectionSummaryLabel;
     private javax.swing.JSplitPane splitPanel;
     private javax.swing.JTextArea translatedTextArea;
@@ -233,6 +252,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
 
     public void loadMap(File file) {
         try {
+            imageFile = file;
             rgbMapFile = RgbMap.getLegendFile(file);
 
             BufferedImage image = ImageIO.read(file);
@@ -249,6 +269,39 @@ public class TranslatorFrame extends javax.swing.JFrame {
         }
 
         updateTranslation();
+    }
+
+    public void saveTranslation() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
+
+        if (imageFile != null) {
+            File mapDirFile = imageFile.getParentFile();
+
+            if (mapDirFile.exists() && mapDirFile.isDirectory()) {
+                chooser.setCurrentDirectory(mapDirFile);
+            }
+
+            String fileName = imageFile.getPath();
+            if (fileName.toLowerCase().endsWith(".png")) {
+                fileName = fileName.substring(0, fileName.length() - 4);
+            }
+
+            chooser.setSelectedFile(new File(fileName + ".txt"));
+        }
+
+        int result = chooser.showSaveDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selFile = chooser.getSelectedFile();
+            String text = translatedTextArea.getText();
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(selFile))) {
+                writer.write(text);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     private void updateTranslation() {
