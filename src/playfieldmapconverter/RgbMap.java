@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * RgbMap is a mapping that maps RGB color values to cells that can be placed in
@@ -122,10 +124,14 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         int width = image.getWidth();
         int height = image.getHeight();
 
+        Set<Character> lettersEncountered = new HashSet<>();
+
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 Rgb rgb = Rgb.fromPixel(image, x, y);
-                b.append(getOrCreate(rgb).letter);
+                char letter = getOrCreate(rgb).letter;
+                lettersEncountered.add(letter);
+                b.append(letter);
             }
 
             b.append(newLine);
@@ -134,7 +140,9 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         b.append("-" + newLine);
 
         for (Entry<Rgb, LegendEntry> e : sortedEntryList()) {
-            b.append(e.getValue() + newLine);
+            if (lettersEncountered.contains(e.getValue().letter)) {
+                b.append(e.getValue() + newLine);
+            }
         }
 
         return b.toString();
