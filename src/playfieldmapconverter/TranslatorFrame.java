@@ -15,13 +15,18 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import static playfieldmapconverter.FileUtilities.*;
+
 /**
+ * TranslatorFrame is the main frame of our GUI here.
  *
  * @author danj
  */
@@ -220,37 +225,22 @@ public class TranslatorFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane translationScrollPanel;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * This method displays a file chooser dialog that lets you open a map file.
+     */
     private void openMap() {
-        Preferences prefs = Preferences.userNodeForPackage(TranslatorFrame.class);
-        String mapDir = prefs.get("mapDir", "");
+        File selFile = chooseOpenFile(this,
+                new FileNameExtensionFilter("PNG Image", "png"));
 
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("PNG Image", "png"));
-
-        if (mapDir.length() > 0) {
-            File mapDirFile = new File(mapDir);
-
-            if (mapDirFile.exists() && mapDirFile.isDirectory()) {
-                chooser.setCurrentDirectory(mapDirFile);
-            }
-        }
-
-        int result = chooser.showOpenDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selFile = chooser.getSelectedFile();
-            prefs.put("mapDir", selFile.getParent());
-            try {
-                prefs.sync();
-            } catch (BackingStoreException ex) {
-                throw new RuntimeException(ex);
-            }
-
+        if (selFile != null) {
             loadMap(selFile);
         }
     }
 
-    public void loadMap(File file) {
+    /**
+     * This method loads a specific file into the frame.
+     */
+    private void loadMap(File file) {
         try {
             imageFile = file;
             rgbMapFile = RgbMap.getLegendFile(file);
@@ -264,46 +254,29 @@ public class TranslatorFrame extends javax.swing.JFrame {
             }
 
             mapPanel.setImage(image);
+
+            updateTranslation();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-
-        updateTranslation();
     }
 
+    /**
+     * this method opens a file chooser to let you save the trsnslatio text.
+     */
     public void saveTranslation() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
+        File selFile = chooseSaveFile(this,
+                replaceExtension(imageFile, ".txt"),
+                new FileNameExtensionFilter("Text File", "txt"));
 
-        if (imageFile != null) {
-            File mapDirFile = imageFile.getParentFile();
-
-            if (mapDirFile.exists() && mapDirFile.isDirectory()) {
-                chooser.setCurrentDirectory(mapDirFile);
-            }
-
-            String fileName = imageFile.getPath();
-            if (fileName.toLowerCase().endsWith(".png")) {
-                fileName = fileName.substring(0, fileName.length() - 4);
-            }
-
-            chooser.setSelectedFile(new File(fileName + ".txt"));
-        }
-
-        int result = chooser.showSaveDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selFile = chooser.getSelectedFile();
-            String text = translatedTextArea.getText();
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(selFile))) {
-                writer.write(text);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+        if (selFile != null) {
+            writeTextFile(selFile, translatedTextArea.getText());
         }
     }
 
+    /**
+     * This method updates the text displayed in the translated text area.
+     */
     private void updateTranslation() {
         BufferedImage image = mapPanel.getImage();
 
@@ -311,6 +284,10 @@ public class TranslatorFrame extends javax.swing.JFrame {
         translatedTextArea.setText(translated);
     }
 
+    /**
+     * this method updates the text that appears below the map to indicate what
+     * cell is selected.
+     */
     private void updateSelectionSummary() {
         Rgb rgb = mapPanel.getSelectedColor();
 
