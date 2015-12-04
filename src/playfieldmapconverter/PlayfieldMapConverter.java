@@ -6,16 +6,13 @@
 package playfieldmapconverter;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.File;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.*;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.UnsupportedLookAndFeelException;
+
+import static playfieldmapconverter.FileUtilities.*;
 
 /**
  *
@@ -28,7 +25,9 @@ public class PlayfieldMapConverter {
      */
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
-            mainCli(new File(args[0]));
+            for (String path : args) {
+                mainCli(new File(path));
+            }
         } else {
             mainGui();
         }
@@ -36,6 +35,12 @@ public class PlayfieldMapConverter {
 
     private static void mainCli(File imageFile) throws Exception {
         File rgbMapFile = RgbMap.getLegendFile(imageFile);
+        File outputFile = replaceExtension(imageFile, ".txt");
+
+        if (outputFile.equals(imageFile)) {
+            return;
+        }
+
         BufferedImage img = ImageIO.read(imageFile);
         RgbMap rgbMap;
 
@@ -46,7 +51,8 @@ public class PlayfieldMapConverter {
         }
 
         String translated = rgbMap.translate(img);
-        System.out.print(translated);
+        writeTextFile(outputFile, translated);
+        System.out.println("Converted: " + outputFile.getName());
     }
 
     private static void mainGui() {
