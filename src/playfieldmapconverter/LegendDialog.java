@@ -30,6 +30,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
+ * This dialog shows a list of legend entries, with their colors, and allows the
+ * user to edit the entries.
  *
  * @author danj
  */
@@ -38,9 +40,6 @@ public class LegendDialog extends javax.swing.JDialog {
     private final RgbMap rgbMap;
     private final DefaultListModel<Entry> entryListModel = new DefaultListModel<>();
 
-    /**
-     * Creates new form LegendDialog
-     */
     public LegendDialog(java.awt.Frame parent, RgbMap rgbMap, Rgb selectedColor) {
         super(parent, true);
         this.rgbMap = rgbMap;
@@ -49,14 +48,7 @@ public class LegendDialog extends javax.swing.JDialog {
 
         this.getRootPane().setDefaultButton(okButton);
 
-        ActionListener escapeListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        };
-
-        this.getRootPane().registerKeyboardAction(escapeListener,
+        this.getRootPane().registerKeyboardAction(new EscapeKeyListener(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
 
@@ -69,31 +61,24 @@ public class LegendDialog extends javax.swing.JDialog {
             entryListModel.addElement(new Entry(e.getKey(), e.getValue()));
         }
 
-        entryList.setCellRenderer(new CellRenderer());
+        entryList.setCellRenderer(new ListItemRenderer());
         entryList.setModel(entryListModel);
         entryList.setSelectedIndex(selectedIndex);
 
-        DocumentListener textFieldListener = new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                saveEntry();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                saveEntry();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                saveEntry();
-            }
-        };
-
+        DocumentListener textFieldListener = new TextChangedListener();
         letterField.getDocument().addDocumentListener(textFieldListener);
         definitionField.getDocument().addDocumentListener(textFieldListener);
     }
 
+    /**
+     * This method saves the changes to the dialog back to the RgbMap it came
+     * from.
+     *
+     * This method also does validation, and if an error occurs it displays an
+     * error, then returns false.
+     *
+     * @return True if the data was saved, false for validation failure.
+     */
     private boolean trySave() {
         Set<Character> letters = new HashSet<>();
 
@@ -122,6 +107,10 @@ public class LegendDialog extends javax.swing.JDialog {
 
     private Entry loadedEntry;
 
+    /**
+     * Loads the selected entry (in the list control) into the text boxes in the
+     * UI. This also udpates 'loadedEnry', so we know where to save back to.
+     */
     private void loadEntry() {
         saveEntry();
 
@@ -135,6 +124,9 @@ public class LegendDialog extends javax.swing.JDialog {
         }
     }
 
+    /**
+     * This saves the textbxoes back into the loaded entry.
+     */
     private void saveEntry() {
         if (loadedEntry != null) {
             if (letterField.getText().length() > 0) {
@@ -147,6 +139,10 @@ public class LegendDialog extends javax.swing.JDialog {
         }
     }
 
+    /**
+     * This class holds the data for one itme in the netry list on the left; the
+     * textboxes can be used to edit this data.
+     */
     public final class Entry {
 
         public final Rgb color;
@@ -169,7 +165,11 @@ public class LegendDialog extends javax.swing.JDialog {
         }
     }
 
-    private final class CellRenderer extends JLabel implements ListCellRenderer<Entry> {
+    /**
+     * This class renders a list item, so that a color swatch is added
+     * to the normal text.
+     */
+    private final class ListItemRenderer extends JLabel implements ListCellRenderer<Entry> {
 
         @Override
         public void paint(Graphics g) {
@@ -338,4 +338,38 @@ public class LegendDialog extends javax.swing.JDialog {
     private javax.swing.JLabel letterLabel;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * This proxy class reacts to text field changes by updating the underlying
+     * entry.
+     */
+    private class TextChangedListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            saveEntry();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            saveEntry();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            saveEntry();
+        }
+    }
+
+    /**
+     * Thix proxy detects escape key presses, and closes the window (without
+     * saving) should this key be pressed.
+     */
+    private class EscapeKeyListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            dispose();
+        }
+    }
 }

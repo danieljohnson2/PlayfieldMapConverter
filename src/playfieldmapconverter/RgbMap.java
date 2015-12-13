@@ -148,12 +148,33 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         return b.toString();
     }
 
+    /**
+     * This methpd returns a file that indicate where to place the legend file
+     * for this map.
+     *
+     * This is just the file named 'Legend.txt" in the same directory as
+     * imageFile; this means all images in the same directory will share this
+     * file.
+     *
+     * @param imageFile The image file whoe legend is needed.
+     * @return The file where that legend should be stored.
+     */
     public static File getLegendFile(File imageFile) {
         return new File(
                 imageFile.getParentFile(),
                 "Legend.txt");
     }
 
+    /**
+     * This method reads a legend file and returns a new RgbMap with that
+     * content.
+     *
+     * This method wraps IOExceptions for you; you are not expected to handle
+     * them.
+     *
+     * @param file The file to read.
+     * @return A new RgbMap containing the data.
+     */
     public static RgbMap readFrom(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             return readFrom(reader);
@@ -162,7 +183,14 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         }
     }
 
-    public static RgbMap readFrom(BufferedReader reader) throws IOException {
+    /**
+     * This method reads a reader and generates an RgbMap from it.
+     *
+     * @param reader The reader to drain.
+     * @return A new RgbMap containing the data.
+     * @throws IOException If an IO error occurs.
+     */
+    private static RgbMap readFrom(BufferedReader reader) throws IOException {
         RgbMap rgbMap = new RgbMap();
         String line;
         while ((line = reader.readLine()) != null) {
@@ -184,6 +212,15 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         return rgbMap;
     }
 
+    /**
+     * This method writes this RgbMap to a file, and will replace an existing
+     * file, if there is one.
+     *
+     * This method wraps IOExceptions for you; you are not expected to handle
+     * them.
+     *
+     * @param file The file to overwrite with the legend file.
+     */
     public void writeTo(File file) {
         try {
             try (PrintStream s = new PrintStream(file)) {
@@ -203,6 +240,13 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         }
     }
 
+    /**
+     * This method returns a list of the entries of this map, but they are
+     * sorted by the letter that designates the entry in the translated map
+     * file.
+     *
+     * @return A list of entries.
+     */
     public List<Entry<Rgb, LegendEntry>> sortedEntryList() {
         List<Entry<Rgb, LegendEntry>> list = new ArrayList<>(entrySet());
 
@@ -218,6 +262,12 @@ final class RgbMap extends HashMap<Rgb, LegendEntry> {
         return Collections.unmodifiableList(list);
     }
 
+    /**
+     * This method returns true if any entry has the letter given.
+     *
+     * @param letter The letter to look for.
+     * @return True if the letter is already in some entry.
+     */
     public boolean containsLetter(char letter) {
         for (LegendEntry e : values()) {
             if (e.letter == letter) {

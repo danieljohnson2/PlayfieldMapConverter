@@ -153,6 +153,13 @@ final class Rgb {
         }
     }
 
+    /**
+     * This method parses a string into an Rgb; the string should be in the form
+     * of a hexadecimal number, 6 digits in length.
+     *
+     * @param text The text to parse.
+     * @return The Rgb that the text represented.
+     */
     public static Rgb parse(String text) {
         int rgb = Integer.parseInt(text, 16);
 
