@@ -187,24 +187,7 @@ public class TranslatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mapPanelPropertyChange
 
     private void mapPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapPanelActionPerformed
-        if (rgbMapFile != null) {
-            LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
-            f.setLocationRelativeTo(this);
-
-            f.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    updateTranslation();
-                    updateSelectionSummary();
-
-                    if (rgbMapFile != null) {
-                        rgbMap.writeTo(rgbMapFile);
-                    }
-                }
-            });
-
-            f.setVisible(true);
-        }
+       openLegend();
     }//GEN-LAST:event_mapPanelActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
@@ -272,6 +255,29 @@ public class TranslatorFrame extends javax.swing.JFrame {
         if (selFile != null) {
             writeTextFile(selFile, translatedTextArea.getText());
         }
+    }
+
+    /**
+     * This method opens the map legend dialog, allow the user
+     * to edit the legend data.
+     */
+    public void openLegend() {
+        LegendDialog f = new LegendDialog(this, rgbMap, mapPanel.getSelectedColor());
+        f.setLocationRelativeTo(this);
+
+        f.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                updateTranslation();
+                updateSelectionSummary();
+
+                if (rgbMapFile != null) {
+                    rgbMap.writeTo(rgbMapFile);
+                }
+            }
+        });
+
+        f.setVisible(true);
     }
 
     /**

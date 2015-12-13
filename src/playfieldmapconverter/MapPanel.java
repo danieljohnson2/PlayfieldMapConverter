@@ -5,6 +5,7 @@
  */
 package playfieldmapconverter;
 
+import com.sun.webkit.SharedBuffer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -27,32 +28,72 @@ import java.util.Objects;
 import javax.swing.JPanel;
 
 /**
+ * This panel displays the map image, expanded to fit the space available. You
+ * can select a color present in this image, and we'll hilight all pixels of the
+ * color; you can double click and we'll invoke an action listener.
  *
  * @author danj
  */
-public class MapPanel extends JPanel implements MouseListener {
+public class MapPanel extends JPanel {
 
     private BufferedImage image;
     private double imageScale = 1.0;
     private int offsetX, offsetY;
     private Rgb selectedColor = null;
-    private Shape selected = null;
+    private Shape selectedArea = null;
     private List<ActionListener> actionListeners = new ArrayList<>();
 
     public MapPanel() {
-        addMouseListener(this);
+        addMouseListener(new MouseProxyListener());
     }
 
+    /**
+     * This method returns the image displayed in this panel.
+     *
+     * @return The image displayed, or null if none is.
+     */
     public BufferedImage getImage() {
         return image;
     }
 
+    /**
+     * This method places an image in this panel, and displays it. This also
+     * resets the selected color.
+     *
+     * @param image The image to display.
+     */
     public void setImage(BufferedImage image) {
         this.image = image;
-        this.selected = null;
+        this.selectedArea = null;
         this.selectedColor = null;
-        
+
         repaint();
+    }
+
+    /**
+     * This returns the selected color.
+     *
+     * @return The selected color, or null if no color is selected.
+     */
+    public Rgb getSelectedColor() {
+        return selectedColor;
+    }
+
+    /**
+     * this sets the selected color, and displays the pixels of that color with
+     * a special hilight.
+     *
+     * @param newColor The new color to apply; may be null.
+     */
+    private void setSelectedColor(Rgb newColor) {
+        if (!Objects.equals(newColor, selectedColor)) {
+            Rgb oldColor = selectedColor;
+            selectedColor = newColor;
+            selectedArea = computeSelectedArea(newColor);
+
+            repaint();
+            firePropertyChange("SelectedColor", oldColor, newColor);
+        }
     }
 
     @Override
@@ -81,98 +122,133 @@ public class MapPanel extends JPanel implements MouseListener {
 
             g2.drawImage(image, 0, 0, null);
 
-            if (selected != null) {
+            if (selectedArea != null) {
                 g2.setColor(new Color(0, 0, 0, .4f));
-                g2.fill(selected);
+                g2.fill(selectedArea);
 
                 g2.setColor(Color.BLACK);
                 g2.setStroke(new BasicStroke(2.0f / (float) imageScale));
-                g2.draw(selected);
+                g2.draw(selectedArea);
             }
 
             g2.dispose();
         }
     }
 
-    public Rgb getSelectedColor() {
-        return selectedColor;
-    }
+    /**
+     * This extracst the color found in the panel at a given point, measures in
+     * the panel's co-ordinates (not the image's!).
+     *
+     * @param x The x co-ordinate, in the panel's co-ordinate space.
+     * @param y The y co-ordinate, in the panel's co-ordinate space.
+     * @return The color found there, or null if outside the image.
+     */
+    private Rgb getColorAt(int x, int y) {
+        if (image != null) {
+            int hitX = (int) ((x - offsetX) / imageScale);
+            int hitY = (int) ((y - offsetY) / imageScale);
 
-    private void setSelectedColor(Rgb newColor) {
-        if (!Objects.equals(newColor, selectedColor)) {
-            Rgb oldColor = selectedColor;
-            selectedColor = newColor;
+            if (hitX >= 0 && hitX < image.getWidth()
+                    && hitY >= 0 && hitY < image.getHeight()) {
 
-            repaint();
-            firePropertyChange("SelectedColor", oldColor, newColor);
-        }
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-            ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_FIRST, "Clicked");
-
-            for (ActionListener l : actionListeners) {
-                l.actionPerformed(evt);
+                return Rgb.fromPixel(image, hitX, hitY);
             }
         }
+
+        return null;
     }
 
-    @Override
-    public void mousePressed(MouseEvent e) {
-        selected = null;
-        Rgb clickedColor = null;
+    /**
+     * This method generates the shape that covers all the pixels of the image
+     * of a given color, or null if no pixels are covered, or if the image is
+     * missing or 'color' is null.
+     *
+     * The shape returned will be in the image's co-ordinate system.
+     *
+     * @param color The color to be hilighted.
+     * @return The shape that covers the pixels, or null.
+     */
+    private Shape computeSelectedArea(Rgb color) {
+        if (image != null && color != null) {
+            int height = image.getHeight();
+            int width = image.getWidth();
 
-        if (image != null) {
-            int hitX = (int) ((e.getX() - offsetX) / imageScale);
-            int hitY = (int) ((e.getY() - offsetY) / imageScale);
+            Area area = new Area();
 
-            Raster raster = image.getRaster();
-            if (hitX >= 0 && hitX < raster.getWidth()
-                    && hitY >= 0 && hitY < raster.getHeight()) {
-
-                clickedColor = Rgb.fromPixel(image, hitX, hitY);
-
-                int height = image.getHeight();
-                int width = image.getWidth();
-
-                Area area = new Area();
-
-                for (int y = 0; y < height; ++y) {
-                    for (int x = 0; x < width; ++x) {
-                        if (clickedColor.equals(Rgb.fromPixel(image, x, y))) {
-                            area.add(new Area(new Rectangle(x, y, 1, 1)));
-                        }
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    if (color.equals(Rgb.fromPixel(image, x, y))) {
+                        area.add(new Area(new Rectangle(x, y, 1, 1)));
                     }
                 }
-
-                selected = area;
-
-                setSelectedColor(clickedColor);
             }
+
+            return area;
         }
 
-        setSelectedColor(clickedColor);
+        return null;
     }
 
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
+    /**
+     * This method registers a listener to be invokes when the user
+     * double-clicks in the panel.
+     *
+     * @param listener
+     */
     public void addActionListener(ActionListener listener) {
         actionListeners.add(listener);
     }
 
+    /**
+     * This method unregisters a listener to be invokes when the user
+     * double-clicks in the panel.
+     *
+     * @param listener
+     */
     public void removeActionListener(ActionListener listener) {
         actionListeners.remove(listener);
+    }
+
+    /**
+     * This method invokes any action listeners that may be registered.
+     */
+    private void fireClickedAction() {
+        ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_FIRST, "Clicked");
+
+        for (ActionListener l : actionListeners) {
+            l.actionPerformed(evt);
+
+        }
+    }
+
+    /**
+     * This little proxy object handles mouse events, so we don't have to expose
+     * the methods publicly.
+     */
+    private class MouseProxyListener implements MouseListener {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+                fireClickedAction();
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            setSelectedColor(getColorAt(e.getX(), e.getY()));
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+        }
     }
 }
